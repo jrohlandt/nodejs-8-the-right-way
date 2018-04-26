@@ -14,7 +14,8 @@ fs.watch(filename, () => {
     // ls.stdout.pipe(process.stdout);
     
     let output = '';
-    ls.stdout.on('data', chunk => output += chunk);
+    ls.stdout.on('data', chunk => output += chunk)
+        .on('error', err => console.log('errrr: ', err));
 
     ls.on('close', () => {
         const parts = output.split(/\s+/);
