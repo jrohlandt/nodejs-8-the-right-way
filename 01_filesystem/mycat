@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// https://stackoverflow.com/questions/43793040/how-does-usr-bin-env-work-in-a-linux-shebang-line
+
+'use strict';
+require('fs')
+    .createReadStream(process.argv[2])
+    .pipe(process.stdout);
