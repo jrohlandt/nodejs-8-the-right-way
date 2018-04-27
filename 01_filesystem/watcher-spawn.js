@@ -1,27 +1,44 @@
+#!/usr/bin/env node
 'use strict';
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 // console.log(process.argv);
-const filename = process.argv[2];
+// usage: ./watcher-spawn.js ls -l -h filename.txt
+
+const command = process.argv[2];
+const filename = process.argv[process.argv.length -1];
+const params = process.argv.slice(2); // includes filename
+
+// console.log(command, params);
 
 if (!filename) {
     throw Error('Please specify a file to watch!');
 }
 
-fs.watch(filename, () => {
-    console.log(`File ${filename} changed!`);
-    const ls = spawn('ls', ['-l', '-h', filename]);
-    // ls.stdout.pipe(process.stdout);
+fs.stat(filename, (err, stats) => {
+
+    if (err) {
+        process.stderr.write(`Error: ${err.message}\n`);
+        return;
+    }
+
+    fs.watch(filename, (eventType, file_name) => {
+
+        process.stdout.write(`File ${file_name} ${eventType}d!\n`);
     
-    let output = '';
-    ls.stdout.on('data', chunk => output += chunk)
-        .on('error', err => console.log('errrr: ', err));
-
-    ls.on('close', () => {
-        const parts = output.split(/\s+/);
-        console.log(parts[0], parts[4], parts[8]);
-    })
-
+        const ls = spawn(command, params);
+        // ls.stdout.pipe(process.stdout);
+        
+        let output = '';
+        ls.stdout.on('data', chunk => output += chunk)
+            .on('error', err => process.stdout.write(`Error: ${err.message}`));
+    
+        ls.on('close', () => {
+            output.split(/\s+/).forEach((val, index) => process.stdout.write(val + ' '));
+        });
+    
+    });
+    
+    
+    process.stdout.write(`Now watching ${filename} for changes...\n`);
 });
-
-console.log(`Now watching ${filename} for changes...`);
