@@ -29,4 +29,26 @@ describe('LDJClient', () => {
         stream.emit('data', '{"foo":');
         process.nextTick(() => stream.emit('data', '"bar"}\n'));
     });
+
+    it('should emit an "invalid" eventtype if json in not valid', done => {
+        client.on('message', message => {
+            assert.deepEqual(message, {type: 'invalid json'});
+            done();
+        });
+        stream.emit('data', '{"type": "changed\n');
+    });
+
 });
+
+// describe('LDJClientNull', () => {
+
+//     it('should throw an error when null is passed to LDJClient constructor', done => {
+
+//         assert.throws(
+//             () => {
+//                 let client = new LDJClient(null);
+//             }, 
+//             Error
+//         );
+//     });
+// });
