@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "test:watch": "mocha --watch --reporter min"
   },
   "keywords": [],
   "author": "",
@@ -12,5 +13,8 @@
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "2.4.5"
+  },
+  "dependencies": {
+    "cheerio": "0.22.0"
   }
 }
