@@ -18,7 +18,9 @@ const fullUrl = (path = '') => {
 
 const handleResponse = (err, res, body) => {
     if (program.json) {
-        console.log(JSON.stringify(err || body));
+        // console.log(JSON.stringify(err || body));
+        console.log(JSON.stringify(err || body, null, ' '));
+        
     } else {
         if (err) throw err;
         console.log(body);
@@ -65,6 +67,47 @@ program
 
         request.put(fullUrl(), handleResponse);
     });
+
+program
+    .command('list-indices')
+    .alias('li')
+    .description('Get a list of indices in this cluster.')
+    .action(() => {
+        const path = program.json ? '_all' : '_cat/indices?v';
+        const url = fullUrl(path);
+        console.log('');
+        console.log(`Sending HTTP Request: ${url}`);
+        console.log('');
+        request({url: url, json: program.json}, handleResponse);
+    });
+
+program
+    .command('bulk <file>')
+    .description('Read and perform bulk operations from the specified file.')
+    .action((file => {
+        fs.stat(file, (err, stats) => {
+            if (err) {
+                if (program.json) {
+                    console.log(JSON.stringify(err));
+                    return;
+                }
+                throw err;
+            }
+
+            const req = request.post({
+                url: fullUrl('_bulk'),
+                json: true,
+                headers: {
+                    'content-length': stats.size,
+                    'content-type': 'application/json'
+                }
+            });
+
+            const stream = fs.createReadStream(file);
+            stream.pipe(req);
+            req.pipe(process.stdout);
+        });
+    }));
     
 program.parse(process.argv);
 
