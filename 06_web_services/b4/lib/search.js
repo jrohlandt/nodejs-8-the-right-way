@@ -1,10 +1,15 @@
 'use strict';
 
 const request = require('request');
+const rp = require('request-promise');
 
 module.exports = (app, es) => {
     const url = `http://${es.host}:${es.port}/${es.books_index}/book/_search`;
 
+    /**
+     * Search a field based on a given query.
+     * Example: /api/search/books/author/Twain
+     */
     app.get('/api/search/books/:field/:query', (req, res) => {
         const esReqBody = {
             size: 10,
@@ -35,5 +40,28 @@ module.exports = (app, es) => {
             }
             res.status(200).json(esResBody.hits.hits.map(({_source}) => _source));
         });
+    });
+
+    /**
+     * Search terms for a given field based on a given query.
+     * Example: /api/suggest/authors/lipman
+     */
+    app.get('/api/suggest/:field/:query', (req, res) => {
+        const esReqBody = {
+            size: 0,
+            suggest: {
+                suggestions: {
+                    text: req.params.query,
+                    term: {
+                        field: req.params.field,
+                        suggest_mode: 'always',
+                    }
+                }
+            }
+        };
+
+        rp({url, json: true, body: esReqBody})
+            .then(esResBody => res.status(200).json(esResBody.suggest.suggestions))
+            .catch(({error}) => res.status(error.status || 502).json(error));
     });
 };
