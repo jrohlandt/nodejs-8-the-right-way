@@ -1,4 +1,6 @@
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import '../node_modules/bootstrap-social/bootstrap-social.css';
+import '../node_modules/font-awesome/css/font-awesome.min.css';
 
 import 'bootstrap';
 
@@ -22,8 +24,11 @@ const showView = async () => {
 
   switch (view) {
     case '#welcome':
-      const session = {};
+      const session = await fetchJSON('/api/session');
       mainElement.innerHTML = templates.welcome({session});
+      if (session.error) {
+        showAlert(session.error);
+      }
       break;
     default:
       // Unrecognized view.
@@ -31,9 +36,23 @@ const showView = async () => {
   }
 };
 
+/**
+ * Convenience method to fetch and decode JSON.
+ */
+const fetchJSON = async (url, method = 'GET') => {
+  try {
+    const response = await fetch(url, {
+      method, 
+      credentials: 'same-origin' // Ensures that credential information (cookies) is send with the request.
+    });
+  } catch(error) {
+    return {error};
+  }
+}
+
 // Page setup.
 (async () => {
-  const session = {};
+  const session = await fetchJSON('/api/session');
   document.body.innerHTML = templates.main({session});
   window.addEventListener('hashchange', showView);
   showView().catch(err => window.location.hash = '#welcome');

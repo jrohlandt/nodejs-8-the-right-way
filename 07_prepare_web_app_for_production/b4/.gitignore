@@ -1,1 +1,3 @@
 node_modules/*
+development.config.json
+config.json
